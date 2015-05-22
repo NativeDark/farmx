@@ -13,20 +13,31 @@ def main():
   for nm in data:
     hold = nm[0].replace(' ','%20')
     str = string.replace('CITY',hold)
-    table = chr(ord(hold[0]))
-    file = urllib2.urlopen(str)
+    table = ''.join(e for e in nm[0] if e.isalnum())
+    table = table.lower()
+    try:
+      file = urllib2.urlopen(str)
+    except urllib2.HTTPError, err:
+      if err.code >= 500:
+        file = urllib2.urlopen(str)
     data = file.read()
     file.close()
-    root = ET.fromstring(data)
+    try:
+      root = ET.fromstring(data)
+    except ET.ParseError, code:
+      print 'ParseError in reading ',nm[0]
+      file = urllib2.urlopen(str)
+      data = file.read()
+      file.close()
     city= root[0][0].text
-    print city
+    print 'Batch Running for City: ',city,' table :',table
     for child in root.findall('forecast'):
       for sym in child.findall('time'):
         for c2 in sym.findall('symbol'):
           #print c2.get('number'), c2.get('name'), sym.get('day')
-          cursor.execute('insert into %c values ("%s","%s",%d,"%s") ' % \
-                          (table,nm[0],sym.get('day'),int(c2.get('number')),c2.get('name')))
-          cursor.execute('commit')
+          #cursor.execute('insert into  values ("2015-12-12",200,"challl","2015-12-12")')
+          cursor.execute('insert into %s values ("%s", %d, "%s", CURDATE()) ' % \
+                          (table, sym.get('day'), int(c2.get('number')), c2.get('name') ))
 
 if __name__ == '__main__':
   main()
