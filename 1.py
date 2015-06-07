@@ -13,7 +13,7 @@ def main():
     #Here we will call the function which will recurisvely get data
     table = gettable(nm[0])
     data = getxml(nm[0])
-    root = getroot(data)
+    root = getroot(data,nm[0])
     city= root[0][0].text
     print 'Batch Running for City: ',city,' table :',table
     for child in root.findall('forecast'):
@@ -39,13 +39,13 @@ def getxml(city):
       data = getxml(city)
   return data
 
-def getroot(data):
+def getroot(data,city):
   try:
     root = ET.fromstring(data)
   except ET.ParseError, code:
-    print 'parse error:',data[0][0]
+    print 'parse error:',city
     data = getxml(city)
-    root = getroot(data)
+    root = getroot(data,city)
   return root
 
 def gettable(city):
